@@ -16,10 +16,12 @@ export interface IStorage {
   // Firm management
   createFirm(firm: InsertFirm): Promise<Firm>;
   getFirmByPin(pin: string): Promise<Firm | undefined>;
+  getFirm(id: number): Promise<Firm | undefined>;
   
   // User management
   createUser(user: InsertUser): Promise<User>;
   getUserByUsername(username: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
   getUsersByFirm(firmId: number): Promise<User[]>;
   getUser(id: number): Promise<User | undefined>;
   
@@ -447,9 +449,25 @@ export class DatabaseStorage implements IStorage {
 
   async getUserByUsername(username: string): Promise<User | undefined> {
     if (!this.databaseAvailable) {
-      return Array.from(this.sampleData.users.values()).find(user => user.username === username);
+      return Array.from(this.sampleData.users.values()).find(user => user.email === username);
     }
-    const [result] = await db.select().from(users).where(eq(users.username, username));
+    const [result] = await db.select().from(users).where(eq(users.email, username));
+    return result;
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    if (!this.databaseAvailable) {
+      return Array.from(this.sampleData.users.values()).find(user => user.email === email);
+    }
+    const [result] = await db.select().from(users).where(eq(users.email, email));
+    return result;
+  }
+
+  async getFirm(id: number): Promise<Firm | undefined> {
+    if (!this.databaseAvailable) {
+      return this.sampleData.firms.get(id);
+    }
+    const [result] = await db.select().from(firms).where(eq(firms.id, id));
     return result;
   }
 

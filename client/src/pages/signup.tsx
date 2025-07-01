@@ -1,23 +1,41 @@
-import { useState, useEffect } from "react";
-import { Link } from "wouter";
+import { useState } from "react";
+import { Link, useLocation } from "wouter";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, Camera, Building, User } from "lucide-react";
-import { signupSchema } from "@shared/schema";
-import type { z } from "zod";
+import { Loader2, UserPlus } from "lucide-react";
 
-type SignupFormData = z.infer<typeof signupSchema>;
+const signupSchema = z.object({
+  firstName: z.string().min(2, "First name required"),
+  lastName: z.string().min(2, "Last name required"),
+  role: z.enum(["admin", "photographer", "videographer", "editor", "other"]),
+  firmId: z.number().optional(),
+  adminPin: z.string().optional(),
+  email: z.string().email("Valid email required"),
+  phone: z.string().regex(/^\d{10}$/, "10 digits required"),
+  password: z.string().min(8, "Min 8 characters"),
+}).refine((data) => {
+  if (data.role === "admin") {
+    return data.adminPin && data.adminPin.length >= 4;
+  } else {
+    return data.firmId !== undefined;
+  }
+}, {
+  message: "Required field missing",
+  path: ["firmId"],
+});
 
 type SignupData = z.infer<typeof signupSchema>;
 
 export default function Signup() {
+  const [, setLocation] = useLocation();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -25,13 +43,23 @@ export default function Signup() {
   const form = useForm<SignupData>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
-      email: "",
-      password: "",
-      confirmPassword: "",
       firstName: "",
       lastName: "",
-      firmName: "",
+      role: "photographer",
+      email: "",
+      phone: "",
+      password: "",
     },
+  });
+
+  const selectedRole = useWatch({
+    control: form.control,
+    name: "role",
+  });
+
+  const { data: firms = [], isLoading: firmsLoading } = useQuery({
+    queryKey: ["/api/firms"],
+    enabled: selectedRole !== "admin",
   });
 
   const onSubmit = async (data: SignupData) => {
@@ -46,23 +74,30 @@ export default function Signup() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          email: data.email,
-          password: data.password,
           firstName: data.firstName,
           lastName: data.lastName,
-          firmName: data.firmName,
+          email: data.email,
+          phone: data.phone,
+          password: data.password,
+          role: data.role,
+          firmId: data.role === "admin" ? null : data.firmId,
+          adminPin: data.role === "admin" ? data.adminPin : undefined,
         }),
       });
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || "Failed to create account");
+        throw new Error(error.message || "Signup failed");
       }
 
-      setSuccess("Account created successfully! Please check your email for verification link.");
+      setSuccess("Account created successfully!");
+      setTimeout(() => {
+        setLocation("/login");
+      }, 2000);
+
       form.reset();
     } catch (err: any) {
-      setError(err.message || "Failed to create account");
+      setError(err.message || "Signup failed");
     } finally {
       setIsLoading(false);
     }
@@ -70,14 +105,14 @@ export default function Signup() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-4">
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-lg">
         <CardHeader className="text-center">
           <div className="mx-auto w-12 h-12 bg-primary rounded-full flex items-center justify-center mb-4">
-            <Camera className="w-6 h-6 text-primary-foreground" />
+            <UserPlus className="w-6 h-6 text-primary-foreground" />
           </div>
-          <CardTitle className="text-2xl font-bold">Create Your Studio Account</CardTitle>
+          <CardTitle className="text-2xl font-bold">Create Account</CardTitle>
           <CardDescription>
-            Start managing your photography business today
+            Join the photography studio platform
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -94,17 +129,18 @@ export default function Signup() {
               </Alert>
             )}
 
+            {/* Name Fields */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="firstName">First Name</Label>
                 <Input
                   id="firstName"
-                  type="text"
                   {...form.register("firstName")}
                   className={form.formState.errors.firstName ? "border-red-500" : ""}
+                  disabled={isLoading}
                 />
                 {form.formState.errors.firstName && (
-                  <p className="text-sm text-red-500">{form.formState.errors.firstName.message}</p>
+                  <p className="text-xs text-red-500">{form.formState.errors.firstName.message}</p>
                 )}
               </div>
 
@@ -112,44 +148,124 @@ export default function Signup() {
                 <Label htmlFor="lastName">Last Name</Label>
                 <Input
                   id="lastName"
-                  type="text"
                   {...form.register("lastName")}
                   className={form.formState.errors.lastName ? "border-red-500" : ""}
+                  disabled={isLoading}
                 />
                 {form.formState.errors.lastName && (
-                  <p className="text-sm text-red-500">{form.formState.errors.lastName.message}</p>
+                  <p className="text-xs text-red-500">{form.formState.errors.lastName.message}</p>
                 )}
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="firmName">Studio Name</Label>
-              <Input
-                id="firmName"
-                type="text"
-                {...form.register("firmName")}
-                placeholder="e.g. Aperture Studios"
-                className={form.formState.errors.firmName ? "border-red-500" : ""}
-              />
-              {form.formState.errors.firmName && (
-                <p className="text-sm text-red-500">{form.formState.errors.firmName.message}</p>
+            {/* Role and Firm/PIN */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="role">Role</Label>
+                <Select
+                  value={form.watch("role")}
+                  onValueChange={(value) => {
+                    form.setValue("role", value as any);
+                    if (value === "admin") {
+                      form.setValue("firmId", undefined);
+                    } else {
+                      form.setValue("adminPin", undefined);
+                    }
+                  }}
+                  disabled={isLoading}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="admin">Admin</SelectItem>
+                    <SelectItem value="photographer">Photographer</SelectItem>
+                    <SelectItem value="videographer">Videographer</SelectItem>
+                    <SelectItem value="editor">Editor</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+                {form.formState.errors.role && (
+                  <p className="text-xs text-red-500">{form.formState.errors.role.message}</p>
+                )}
+              </div>
+
+              {selectedRole === "admin" ? (
+                <div className="space-y-2">
+                  <Label htmlFor="adminPin">Admin PIN</Label>
+                  <Input
+                    id="adminPin"
+                    type="password"
+                    {...form.register("adminPin")}
+                    className={form.formState.errors.adminPin ? "border-red-500" : ""}
+                    disabled={isLoading}
+                  />
+                  {form.formState.errors.adminPin && (
+                    <p className="text-xs text-red-500">{form.formState.errors.adminPin.message}</p>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <Label htmlFor="firmId">Studio</Label>
+                  <Select
+                    value={form.watch("firmId")?.toString()}
+                    onValueChange={(value) => form.setValue("firmId", parseInt(value))}
+                    disabled={isLoading || firmsLoading}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select studio" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {firms.map((firm: any) => (
+                        <SelectItem key={firm.id} value={firm.id.toString()}>
+                          {firm.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {firmsLoading && (
+                    <p className="text-xs text-slate-500">Loading...</p>
+                  )}
+                  {form.formState.errors.firmId && (
+                    <p className="text-xs text-red-500">{form.formState.errors.firmId.message}</p>
+                  )}
+                </div>
               )}
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                {...form.register("email")}
-                placeholder="you@yourstudio.com"
-                className={form.formState.errors.email ? "border-red-500" : ""}
-              />
-              {form.formState.errors.email && (
-                <p className="text-sm text-red-500">{form.formState.errors.email.message}</p>
-              )}
+            {/* Email and Phone */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  {...form.register("email")}
+                  className={form.formState.errors.email ? "border-red-500" : ""}
+                  disabled={isLoading}
+                />
+                {form.formState.errors.email && (
+                  <p className="text-xs text-red-500">{form.formState.errors.email.message}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="phone">Phone</Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  {...form.register("phone")}
+                  placeholder="1234567890"
+                  className={form.formState.errors.phone ? "border-red-500" : ""}
+                  disabled={isLoading}
+                />
+                {form.formState.errors.phone && (
+                  <p className="text-xs text-red-500">{form.formState.errors.phone.message}</p>
+                )}
+              </div>
             </div>
 
+            {/* Password */}
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <Input
@@ -157,22 +273,10 @@ export default function Signup() {
                 type="password"
                 {...form.register("password")}
                 className={form.formState.errors.password ? "border-red-500" : ""}
+                disabled={isLoading}
               />
               {form.formState.errors.password && (
-                <p className="text-sm text-red-500">{form.formState.errors.password.message}</p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                {...form.register("confirmPassword")}
-                className={form.formState.errors.confirmPassword ? "border-red-500" : ""}
-              />
-              {form.formState.errors.confirmPassword && (
-                <p className="text-sm text-red-500">{form.formState.errors.confirmPassword.message}</p>
+                <p className="text-xs text-red-500">{form.formState.errors.password.message}</p>
               )}
             </div>
 
@@ -180,7 +284,7 @@ export default function Signup() {
               {isLoading ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Creating Account...
+                  Creating...
                 </>
               ) : (
                 "Create Account"

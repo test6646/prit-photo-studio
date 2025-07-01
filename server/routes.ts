@@ -35,41 +35,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Firm-based signup system
+  // Simplified signup system
   app.post("/api/auth/signup", async (req, res) => {
     try {
-      const { email, password, firstName, lastName, phone, role, firmId } = req.body;
+      const { email, password, firstName, lastName, phone, role, firmId, adminPin } = req.body;
 
-      // Validate role-based firm requirement
-      if (role !== "admin" && !firmId) {
-        return res.status(400).json({ message: "Firm selection is required for non-admin roles" });
-      }
-
-      // Create user with proper firm association
-      const user = await storage.createUser({
-        email,
-        password, // In production, hash this with bcrypt
-        firstName,
-        lastName,
-        phone,
-        role,
-        firmId: role === "admin" ? null : firmId,
-        isActive: true
-      });
-
+      // For admin role, validate PIN and create firm
       if (role === "admin") {
+        if (!adminPin || adminPin.length < 4) {
+          return res.status(400).json({ message: "Admin PIN required (min 4 characters)" });
+        }
+        
+        // Store the admin PIN securely (in production, this would be hashed)
+        process.env.ADMIN_PIN = adminPin;
+        
+        // Create a default firm for the admin
+        const firm = await storage.createFirm({
+          name: `${firstName} ${lastName} Studio`,
+          pin: Math.random().toString(36).substring(2, 8).toUpperCase(),
+          isActive: true
+        });
+
+        // Create admin user
+        const user = await storage.createUser({
+          email,
+          password,
+          firstName,
+          lastName,
+          phone,
+          role,
+          firmId: firm.id,
+          isActive: true
+        });
+
         res.json({ 
-          message: "Admin account created successfully",
+          message: "Admin account and studio created successfully",
           user: {
             id: user.id,
             email: user.email,
             firstName: user.firstName,
             lastName: user.lastName,
             role: user.role
-          },
-          redirectTo: "/admin-setup"
+          }
         });
       } else {
+        // For non-admin roles, validate firm selection
+        if (!firmId) {
+          return res.status(400).json({ message: "Studio selection required" });
+        }
+
+        // Create user with selected firm
+        const user = await storage.createUser({
+          email,
+          password,
+          firstName,
+          lastName,
+          phone,
+          role,
+          firmId,
+          isActive: true
+        });
+
         res.json({ 
           message: "Account created successfully",
           user: {
@@ -78,8 +104,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             firstName: user.firstName,
             lastName: user.lastName,
             role: user.role
-          },
-          redirectTo: "/login"
+          }
         });
       }
     } catch (error) {
@@ -126,53 +151,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // PIN-based authentication (existing)
+  // Email-based authentication
   app.post("/api/auth/login", async (req, res) => {
     try {
-      console.log("Login request body:", req.body);
-      const { firmPin, username, password } = loginSchema.parse(req.body);
-      console.log("Parsed data:", { firmPin, username, password });
+      const { email, password } = req.body;
       
-      const firm = await storage.getFirmByPin(firmPin);
-      console.log("Found firm:", firm);
-      if (!firm) {
-        return res.status(401).json({ message: "Invalid firm PIN" });
+      // Find user by email
+      const user = await storage.getUserByEmail(email);
+      if (!user || user.password !== password) {
+        return res.status(401).json({ message: "Invalid email or password" });
       }
 
-      const user = await storage.getUserByUsername(username);
-      console.log("Found user:", user);
-      if (!user || user.password !== password || user.firmId !== firm.id) {
-        console.log("User validation failed:", { 
-          userExists: !!user, 
-          passwordMatch: user?.password === password,
-          firmMatch: user?.firmId === firm.id 
-        });
-        return res.status(401).json({ message: "Invalid credentials" });
+      // Get user's firm if they have one
+      let firm = null;
+      if (user.firmId) {
+        firm = await storage.getFirm(user.firmId);
       }
 
       // Set session data
       req.session.userId = user.id;
-      req.session.firmId = firm.id;
+      req.session.firmId = user.firmId || undefined;
       
       res.json({ 
         user: { 
           id: user.id, 
           firmId: user.firmId,
-          username: user.username, 
           email: user.email,
           firstName: user.firstName,
           lastName: user.lastName,
-          role: user.role,
-          avatar: user.avatar
+          role: user.role
         }, 
-        firm: { 
+        firm: firm ? { 
           id: firm.id, 
           name: firm.name 
-        } 
+        } : null
       });
     } catch (error) {
       console.error("Login error:", error);
-      res.status(400).json({ message: "Invalid request data" });
+      res.status(400).json({ message: "Login failed" });
     }
   });
 

@@ -5,13 +5,11 @@ import type { User, Firm, LoginData } from "@shared/schema";
 
 interface AuthUser {
   id: number;
-  firmId: number;
-  username: string;
+  firmId: number | null;
   email: string;
   firstName: string;
   lastName: string;
   role: string;
-  avatar?: string;
 }
 
 interface AuthContextType {

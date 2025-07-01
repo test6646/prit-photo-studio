@@ -1,0 +1,159 @@
+CREATE A PROFESSIONAL PHOTOGRAPHY STUDIO MANAGEMENT SYSTEM FROM SCRATCH
+
+I need you to build a complete, production-ready Photography Studio Management System with the following comprehensive specifications:
+
+🏗️ CORE ARCHITECTURE & TECHNICAL STACK
+Frontend: React + TypeScript + Vite + Tailwind CSS + Shadcn UI
+Backend: Supabase (Database, Auth, Real-time, Edge Functions)
+State Management: React Query + Context API
+Google Integration: Service Account API for automatic spreadsheet management
+Mobile-First: Responsive design that works flawlessly on all devices
+🎨 DESIGN SYSTEM & COLOR SCHEME
+Primary Color Palette:
+
+Primary Blue: #c4b28d
+
+Clean, modern, professional interface
+Consistent spacing and typography
+Subtle shadows and rounded corners
+Smooth animations and transitions
+Accessible color contrasts
+Professional photography studio aesthetics
+🔐 AUTHENTICATION & MULTI-TENANT SYSTEM
+Studio PIN Verification → Role-Based Authentication
+Multi-Firm Architecture with complete data isolation
+Roles: Admin, Photographer, Videographer, Editor with granular permissions
+Secure Session Management with proper token handling
+Profile-based user management with firm associations
+📊 AUTOMATIC GOOGLE SHEETS INTEGRATION
+SERVICE ACCOUNT IMPLEMENTATION:
+
+When a new firm is created → Automatically generate dedicated Google Spreadsheet
+Auto-create multiple sheets: Events, Transactions, Tasks, Staff Payments, Analytics
+Real-time synchronization for all data operations (CREATE, UPDATE, DELETE)
+Formatted spreadsheets with proper headers, validation, and conditional formatting
+Public sharing with edit permissions for team collaboration
+SYNC REQUIREMENTS:
+
+Event Creation/Update → Instant sync to Events sheet
+Payment Collection → Instant sync to Transactions sheet
+Task Assignment → Instant sync to Tasks sheet
+Staff Payments → Instant sync to Staff Payments sheet
+Expense Tracking → Instant sync to Expenses sheet
+Real-time calculations for totals, balances, and analytics
+💰 COMPREHENSIVE FINANCIAL MANAGEMENT
+REAL-TIME CALCULATIONS:
+
+Total Revenue: Sum of all event payments
+Pending Amounts: Outstanding client payments
+Expense Tracking: Categorized business expenses
+Staff Payment Management: Automated payment calculations
+Profit/Loss Analysis: Real-time financial insights
+Monthly/Yearly Reports: Automated financial summaries
+PAYMENT FLOW:
+
+Quotation → Event Conversion → Payment Collection
+Advance + Balance tracking with automatic calculations
+Invoice generation with QR codes for payments
+Payment method tracking (Cash, UPI, Bank Transfer)
+Automated receipt generation and client notifications
+🎯 REAL-TIME NOTIFICATION & SYNCHRONIZATION SYSTEM
+COMPREHENSIVE NOTIFICATION FLOW:
+
+Task Assignment → Instant notification to assigned staff + Admin notification
+Task Status Updates → Real-time notifications to Admin + Auto-update event status
+Payment Collection → Client notification + Admin alert + Sheets sync
+Event Status Changes → All stakeholders notified + Sheets updated
+Deadline Reminders → Automated reminders for pending tasks
+WhatsApp Integration for critical notifications
+REAL-TIME UPDATES:
+
+Live Dashboard Updates using Supabase real-time subscriptions
+Status Badge Updates across all components
+Automatic UI Refresh when data changes
+Cross-device Synchronization for team collaboration
+📋 ADVANCED TASK MANAGEMENT & AUTOMATION
+INTELLIGENT TASK SYSTEM:
+
+Auto-Task Creation: When photographer/videographer assigned → Auto-create editing tasks
+Smart Deadlines: Automatic deadline calculation based on event dates
+Task Dependencies: Photo editing → Video editing → Delivery workflow
+Progress Tracking: Real-time progress updates with visual indicators
+Automated Status Updates: Task completion → Event status update → Client notification
+TASK WORKFLOW:
+
+Event Assignment → Auto-create tasks for assigned staff
+Task Progress Updates → Real-time dashboard updates
+Task Completion → Auto-update event editing status
+All Updates → Instant Google Sheets synchronization
+Notifications → Admin alerts + Staff notifications
+🏢 COMPLETE FIRM MANAGEMENT
+FIRM CREATION FLOW:
+
+Admin creates firm → Auto-generate Google Spreadsheet
+Service Account Setup → Automatic sheet sharing and permissions
+Staff Onboarding → Role-based access and task assignments
+Client Management → Centralized contact and project tracking
+Analytics Dashboard → Real-time business insights
+📱 USER EXPERIENCE & INTERFACE
+LAYOUT REQUIREMENTS:
+
+Responsive Grid Systems that adapt to all screen sizes
+Consistent Navigation with role-based menu items
+Professional Dashboard with real-time metrics and charts
+Intuitive Form Designs with proper validation and error handling
+Fast Loading States with skeleton loaders and optimistic updates
+Clean Data Tables with sorting, filtering, and pagination
+MOBILE OPTIMIZATION:
+
+Touch-Friendly Interface with proper tap targets
+Swipe Gestures for common actions
+Optimized Forms for mobile input
+Responsive Images and media handling
+Fast Performance on mobile devices
+🔄 COMPREHENSIVE DATA SYNCHRONIZATION
+GOOGLE SHEETS SYNC POINTS:
+
+Event Creation → Events sheet + Master sheet update
+Payment Collection → Transactions sheet + Event update
+Task Assignment → Tasks sheet + Notification creation
+Staff Payments → Staff Payments sheet + Transaction log
+Expense Addition → Expenses sheet + Analytics update
+Status Changes → Real-time sheet updates with formatting
+SYNC FEATURES:
+
+Bidirectional Sync (Database ↔ Google Sheets)
+Conflict Resolution for simultaneous updates
+Backup and Recovery systems
+Audit Trails for all data changes
+Real-time Validation and error handling
+📈 ANALYTICS & REPORTING
+REAL-TIME DASHBOARD:
+
+Revenue Analytics: Monthly/yearly income trends
+Task Progress: Team productivity metrics
+Client Insights: Repeat customers and satisfaction
+Financial Health: Profit margins and expense analysis
+Staff Performance: Task completion rates and efficiency
+AUTOMATED REPORTS:
+
+Monthly Financial Summary with charts and insights
+Staff Performance Reports with task analytics
+Client Activity Reports with project status
+Business Growth Metrics with trend analysis
+🚀 IMPLEMENTATION PRIORITIES
+Phase 1: Clean database schema + Authentication system
+Phase 2: Core event management + Google Sheets integration
+Phase 3: Task automation + Real-time notifications
+Phase 4: Financial management + Payment processing
+Phase 5: Analytics dashboard + Advanced reporting
+Phase 6: Mobile optimization + Performance tuning
+💡 KEY SUCCESS CRITERIA
+Zero Data Inconsistencies - Perfect database relationships
+Real-time Synchronization - Instant updates everywhere
+Professional Design - Studio-grade user interface
+Automated Workflows - Minimal manual intervention
+Mobile Excellence - Perfect mobile experience
+Scalable Architecture - Support for growing studios
+Data Security - Proper RLS and access controls
+START WITH A CLEAN, NORMALIZED DATABASE SCHEMA AND BUILD INCREMENTALLY. ENSURE EVERY FEATURE IS PRODUCTION-READY BEFORE MOVING TO THE NEXT. FOCUS ON CREATING A SYSTEM THAT PHOTOGRAPHY STUDIOS WILL ACTUALLY USE AND LOVE.

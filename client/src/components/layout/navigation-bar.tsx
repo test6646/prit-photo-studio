@@ -99,8 +99,8 @@ export default function NavigationBar() {
               mobile ? "w-full justify-start" : ""
             } h-10 px-4 rounded-lg transition-all duration-200 ${
               isActive(item.href)
-                ? "bg-indigo-600 text-white shadow-md hover:bg-indigo-700"
-                : "text-gray-600 hover:text-indigo-600 hover:bg-indigo-50"
+                ? "bg-amber-600 text-white shadow-md hover:bg-amber-700"
+                : "text-gray-600 hover:text-amber-600 hover:bg-amber-50"
             }`}
           >
             <item.icon className="h-4 w-4 mr-2" />
@@ -124,7 +124,7 @@ export default function NavigationBar() {
           <div className="flex items-center space-x-4">
             <Link href="/dashboard">
               <div className="flex items-center space-x-3 cursor-pointer">
-                <Camera className="h-8 w-8 text-indigo-600" />
+                <Camera className="h-8 w-8 text-amber-600" />
                 <span className="font-bold text-xl text-gray-900">
                   {firm.name.split(' ').slice(0, 2).join(' ')}
                 </span>
@@ -156,7 +156,7 @@ export default function NavigationBar() {
                 <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                   <Avatar className="h-10 w-10">
                     <AvatarImage src="" alt={`${user.firstName} ${user.lastName}`} />
-                    <AvatarFallback className="bg-indigo-600 text-white font-medium">
+                    <AvatarFallback className="bg-amber-600 text-white font-medium">
                       {getInitials(user.firstName, user.lastName)}
                     </AvatarFallback>
                   </Avatar>
@@ -207,7 +207,7 @@ export default function NavigationBar() {
               <SheetContent side="right" className="w-72">
                 <div className="flex flex-col space-y-4 mt-6">
                   <div className="flex items-center space-x-3 px-2">
-                    <Camera className="h-6 w-6 text-indigo-600" />
+                    <Camera className="h-6 w-6 text-amber-600" />
                     <span className="font-semibold text-lg">{firm.name}</span>
                   </div>
                   <div className="border-t pt-4 space-y-2">

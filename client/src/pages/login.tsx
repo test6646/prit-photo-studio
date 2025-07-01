@@ -30,7 +30,7 @@ export default function Login() {
     try {
       setError("");
       await login(data);
-      setLocation("/");
+      // Don't redirect here, let the auth context handle it
     } catch (err) {
       setError("Invalid credentials. Please check your firm PIN, username, and password.");
     }

@@ -40,19 +40,26 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const loginMutation = useMutation({
     mutationFn: async (data: LoginData) => {
-      const response = await apiRequest("POST", "/api/auth/login", data);
+      const response = await apiRequest("/api/auth/login", {
+        method: "POST",
+        body: JSON.stringify(data),
+      });
       return response.json();
     },
     onSuccess: (data) => {
       setUser(data.user);
       setFirm(data.firm);
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      // Force redirect to dashboard after successful login
+      window.location.href = "/dashboard";
     },
   });
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      await apiRequest("POST", "/api/auth/logout");
+      await apiRequest("/api/auth/logout", {
+        method: "POST",
+      });
     },
     onSuccess: () => {
       setUser(null);

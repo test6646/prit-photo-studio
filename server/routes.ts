@@ -517,6 +517,128 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Quotation routes
+  app.get("/api/quotations", async (req, res) => {
+    if (!req.session?.firmId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    const quotations = await storage.getQuotationsByFirm(req.session.firmId);
+    res.json(quotations);
+  });
+
+  app.post("/api/quotations", async (req, res) => {
+    if (!req.session?.firmId || !req.session?.userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const quotationData = {
+        ...req.body,
+        firmId: req.session.firmId,
+      };
+      
+      const quotation = await storage.createQuotation(quotationData);
+      
+      // Create activity log
+      await storage.createActivityLog({
+        firmId: req.session.firmId,
+        userId: req.session.userId,
+        action: "quotation_created",
+        entityType: "quotation",
+        entityId: quotation.id,
+        description: `Quotation "${quotation.title}" created for client`,
+      });
+
+      res.status(201).json(quotation);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid quotation data" });
+    }
+  });
+
+  app.post("/api/quotations/:id/convert", async (req, res) => {
+    if (!req.session?.firmId || !req.session?.userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const quotationId = parseInt(req.params.id);
+      const event = await storage.convertQuotationToEvent(quotationId);
+      
+      if (!event) {
+        return res.status(404).json({ message: "Quotation not found" });
+      }
+
+      // Create activity log
+      await storage.createActivityLog({
+        firmId: req.session.firmId,
+        userId: req.session.userId,
+        action: "quotation_converted",
+        entityType: "event",
+        entityId: event.id,
+        description: `Quotation converted to event "${event.title}"`,
+      });
+
+      res.json(event);
+    } catch (error) {
+      res.status(400).json({ message: "Failed to convert quotation" });
+    }
+  });
+
+  // Enhanced payment routes with Google Sheets sync
+  app.post("/api/payments", async (req, res) => {
+    if (!req.session?.firmId || !req.session?.userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    try {
+      const paymentData = {
+        ...req.body,
+        firmId: req.session.firmId,
+        receivedBy: req.session.userId,
+      };
+      
+      const payment = await storage.createPayment(paymentData);
+      
+      // Get firm info for Google Sheets integration
+      const firm = await storage.getFirm(req.session.firmId);
+      if (firm?.spreadsheetId) {
+        try {
+          // Sync payment to Google Sheets
+          const event = await storage.getEvent(payment.eventId);
+          if (event) {
+            await googleSheetsService.addPaymentToSheet(firm.spreadsheetId, { ...payment, event });
+          }
+        } catch (sheetsError) {
+          console.error("Failed to sync payment to Google Sheets:", sheetsError);
+        }
+      }
+      
+      // Create activity log
+      await storage.createActivityLog({
+        firmId: req.session.firmId,
+        userId: req.session.userId,
+        action: "payment_recorded",
+        entityType: "payment",
+        entityId: payment.id,
+        description: `Payment of ₹${payment.amount} recorded`,
+      });
+
+      res.status(201).json(payment);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid payment data" });
+    }
+  });
+
+  app.get("/api/payments", async (req, res) => {
+    if (!req.session?.firmId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    const payments = await storage.getPaymentsByFirm(req.session.firmId);
+    res.json(payments);
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

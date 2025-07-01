@@ -7,6 +7,7 @@ export const firms = pgTable("firms", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   pin: text("pin").notNull().unique(),
+  spreadsheetId: text("spreadsheet_id"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   isActive: boolean("is_active").default(true).notNull(),
 });
@@ -44,7 +45,7 @@ export const events = pgTable("events", {
   clientId: integer("client_id").notNull(),
   title: text("title").notNull(),
   description: text("description"),
-  eventType: text("event_type").notNull(), // wedding, birthday, corporate, etc
+  eventType: text("event_type").notNull(), // wedding, pre-wedding, engagement, birthday, corporate
   eventDate: timestamp("event_date").notNull(),
   venue: text("venue"),
   status: text("status").notNull().default("scheduled"), // scheduled, in_progress, editing, completed, delivered
@@ -53,6 +54,10 @@ export const events = pgTable("events", {
   balanceAmount: decimal("balance_amount", { precision: 10, scale: 2 }).notNull(),
   photographerId: integer("photographer_id"),
   videographerId: integer("videographer_id"),
+  photoEditorId: integer("photo_editor_id"),
+  videoEditorId: integer("video_editor_id"),
+  storageDisk: text("storage_disk"), // A, B, C, ... Z
+  storageSize: text("storage_size"), // e.g., "50GB", "100GB"
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -100,13 +105,31 @@ export const expenses = pgTable("expenses", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Quotations table
+export const quotations = pgTable("quotations", {
+  id: serial("id").primaryKey(),
+  firmId: integer("firm_id").notNull(),
+  clientId: integer("client_id").notNull(),
+  title: text("title").notNull(),
+  description: text("description"),
+  eventType: text("event_type").notNull(),
+  eventDate: timestamp("event_date").notNull(),
+  venue: text("venue"),
+  totalAmount: decimal("total_amount", { precision: 10, scale: 2 }).notNull(),
+  status: text("status").notNull().default("pending"), // pending, approved, rejected, converted
+  validUntil: timestamp("valid_until").notNull(),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Activity logs for recent activity tracking
 export const activityLogs = pgTable("activity_logs", {
   id: serial("id").primaryKey(),
   firmId: integer("firm_id").notNull(),
   userId: integer("user_id").notNull(),
   action: text("action").notNull(),
-  entityType: text("entity_type").notNull(), // event, task, payment, etc
+  entityType: text("entity_type").notNull(), // event, task, payment, quotation, etc
   entityId: integer("entity_id").notNull(),
   description: text("description").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -149,6 +172,12 @@ export const insertPaymentSchema = createInsertSchema(payments).omit({
 export const insertExpenseSchema = createInsertSchema(expenses).omit({
   id: true,
   createdAt: true,
+});
+
+export const insertQuotationSchema = createInsertSchema(quotations).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
 });
 
 export const insertActivityLogSchema = createInsertSchema(activityLogs).omit({
@@ -204,6 +233,7 @@ export type Event = typeof events.$inferSelect;
 export type Task = typeof tasks.$inferSelect;
 export type Payment = typeof payments.$inferSelect;
 export type Expense = typeof expenses.$inferSelect;
+export type Quotation = typeof quotations.$inferSelect;
 export type ActivityLog = typeof activityLogs.$inferSelect;
 
 export type InsertFirm = z.infer<typeof insertFirmSchema>;
@@ -213,6 +243,7 @@ export type InsertEvent = z.infer<typeof insertEventSchema>;
 export type InsertTask = z.infer<typeof insertTaskSchema>;
 export type InsertPayment = z.infer<typeof insertPaymentSchema>;
 export type InsertExpense = z.infer<typeof insertExpenseSchema>;
+export type InsertQuotation = z.infer<typeof insertQuotationSchema>;
 export type InsertActivityLog = z.infer<typeof insertActivityLogSchema>;
 export type LoginData = z.infer<typeof loginSchema>;
 

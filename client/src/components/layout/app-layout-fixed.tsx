@@ -12,16 +12,17 @@ export default function AppLayout({ children }: AppLayoutProps) {
   const { user, firm, isLoading } = useAuth();
   const [location, setLocation] = useLocation();
 
-  // Always call useEffect - never conditionally
+  // Always call hooks in the same order
   useEffect(() => {
     if (!isLoading && (!user || !firm)) {
-      if (location !== "/login" && location !== "/signup" && location !== "/login-email") {
+      const authPages = ["/login", "/signup", "/login-email"];
+      if (!authPages.includes(location)) {
         setLocation("/login");
       }
     }
   }, [user, firm, location, setLocation, isLoading]);
 
-  // Handle loading state
+  // Show loading state
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -33,11 +34,15 @@ export default function AppLayout({ children }: AppLayoutProps) {
     );
   }
 
-  // Handle unauthenticated state
+  // Show unauthenticated state
+  const authPages = ["/login", "/signup", "/login-email"];
+  const isAuthPage = authPages.includes(location);
+  
   if (!user || !firm) {
-    if (location === "/login" || location === "/signup" || location === "/login-email") {
+    if (isAuthPage) {
       return <div className="min-h-screen bg-gray-50">{children}</div>;
     }
+    
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
@@ -48,6 +53,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
     );
   }
 
+  // Show authenticated layout
   return (
     <div className="min-h-screen bg-gray-50">
       <NavigationBar />

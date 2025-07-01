@@ -2,11 +2,12 @@ import { drizzle } from "drizzle-orm/neon-http";
 import { neon } from "@neondatabase/serverless";
 import { eq, desc, and, sql, inArray } from "drizzle-orm";
 import {
-  firms, users, clients, events, tasks, payments, expenses, activityLogs,
-  type Firm, type User, type Client, type Event, type Task, type Payment, type Expense, type ActivityLog,
-  type InsertFirm, type InsertUser, type InsertClient, type InsertEvent, type InsertTask, type InsertPayment, type InsertExpense, type InsertActivityLog,
+  firms, users, clients, events, tasks, payments, expenses, quotations, activityLogs,
+  type Firm, type User, type Client, type Event, type Task, type Payment, type Expense, type Quotation, type ActivityLog,
+  type InsertFirm, type InsertUser, type InsertClient, type InsertEvent, type InsertTask, type InsertPayment, type InsertExpense, type InsertQuotation, type InsertActivityLog,
   type EventWithClient, type TaskWithDetails, type DashboardStats, type FinancialSummary
 } from "@shared/schema";
+import { googleSheetsService } from "./google-sheets";
 
 const connectionString = process.env.SUPABASE_DATABASE_URL || process.env.DATABASE_URL;
 let client: any = null;
@@ -29,6 +30,7 @@ export interface IStorage {
   createFirm(firm: InsertFirm): Promise<Firm>;
   getFirmByPin(pin: string): Promise<Firm | undefined>;
   getFirm(id: number): Promise<Firm | undefined>;
+  updateFirmSpreadsheet(id: number, spreadsheetId: string): Promise<Firm | undefined>;
   
   // User management
   createUser(user: InsertUser): Promise<User>;
@@ -47,6 +49,13 @@ export interface IStorage {
   getEventsByFirm(firmId: number): Promise<EventWithClient[]>;
   getEvent(id: number): Promise<EventWithClient | undefined>;
   updateEventStatus(id: number, status: string): Promise<Event | undefined>;
+  
+  // Quotation management
+  createQuotation(quotation: InsertQuotation): Promise<Quotation>;
+  getQuotationsByFirm(firmId: number): Promise<Quotation[]>;
+  getQuotation(id: number): Promise<Quotation | undefined>;
+  updateQuotationStatus(id: number, status: string): Promise<Quotation | undefined>;
+  convertQuotationToEvent(quotationId: number): Promise<Event | undefined>;
   
   // Task management
   createTask(task: InsertTask): Promise<Task>;
@@ -454,6 +463,16 @@ export class DatabaseStorage implements IStorage {
       try {
         const [result] = await db.insert(firms).values(firm).returning();
         this.sampleData.firms.set(result.id, result);
+        
+        // Create Google Sheets spreadsheet for the firm
+        try {
+          const spreadsheetId = await googleSheetsService.createFirmSpreadsheet(result);
+          await this.updateFirmSpreadsheet(result.id, spreadsheetId);
+          result.spreadsheetId = spreadsheetId;
+        } catch (sheetsError) {
+          console.error("Failed to create Google Sheets:", sheetsError);
+        }
+        
         return result;
       } catch (error) {
         console.error("Database error, falling back to sample data:", error);
@@ -465,11 +484,27 @@ export class DatabaseStorage implements IStorage {
     const newFirm: Firm = {
       id: this.currentId++,
       ...firm,
+      spreadsheetId: null,
       createdAt: new Date(),
       isActive: firm.isActive ?? true
     };
     this.sampleData.firms.set(newFirm.id, newFirm);
     return newFirm;
+  }
+
+  async updateFirmSpreadsheet(id: number, spreadsheetId: string): Promise<Firm | undefined> {
+    if (this.databaseAvailable) {
+      try {
+        const [result] = await db.update(firms)
+          .set({ spreadsheetId })
+          .where(eq(firms.id, id))
+          .returning();
+        return result;
+      } catch (error) {
+        console.error("Database error updating firm spreadsheet:", error);
+      }
+    }
+    return undefined;
   }
 
   async getFirmByPin(pin: string): Promise<Firm | undefined> {
@@ -807,6 +842,55 @@ export class DatabaseStorage implements IStorage {
       totalExpenses: financial.totalExpenses,
       netProfit,
     };
+  }
+
+  // Quotation management methods
+  async createQuotation(quotation: InsertQuotation): Promise<Quotation> {
+    const [result] = await db.insert(quotations).values(quotation).returning();
+    return result;
+  }
+
+  async getQuotationsByFirm(firmId: number): Promise<Quotation[]> {
+    return db.select().from(quotations).where(eq(quotations.firmId, firmId));
+  }
+
+  async getQuotation(id: number): Promise<Quotation | undefined> {
+    const [result] = await db.select().from(quotations).where(eq(quotations.id, id));
+    return result;
+  }
+
+  async updateQuotationStatus(id: number, status: string): Promise<Quotation | undefined> {
+    const [result] = await db.update(quotations)
+      .set({ status, updatedAt: new Date() })
+      .where(eq(quotations.id, id))
+      .returning();
+    return result;
+  }
+
+  async convertQuotationToEvent(quotationId: number): Promise<Event | undefined> {
+    const quotation = await this.getQuotation(quotationId);
+    if (!quotation) return undefined;
+
+    // Create event from quotation
+    const eventData: InsertEvent = {
+      firmId: quotation.firmId,
+      clientId: quotation.clientId,
+      title: quotation.title,
+      description: quotation.description,
+      eventType: quotation.eventType,
+      eventDate: quotation.eventDate,
+      venue: quotation.venue,
+      totalAmount: quotation.totalAmount.toString(),
+      balanceAmount: quotation.totalAmount.toString(),
+      status: "confirmed",
+    };
+
+    const [event] = await db.insert(events).values(eventData).returning();
+    
+    // Update quotation status to converted
+    await this.updateQuotationStatus(quotationId, "converted");
+    
+    return event;
   }
 }
 

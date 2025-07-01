@@ -14,15 +14,13 @@ export const firms = pgTable("firms", {
 // Users table with role-based access
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
-  firmId: integer("firm_id").notNull(),
-  username: text("username").notNull().unique(),
+  firmId: integer("firm_id"), // nullable for admin users
   email: text("email").notNull().unique(),
   password: text("password").notNull(),
   firstName: text("first_name").notNull(),
   lastName: text("last_name").notNull(),
-  role: text("role").notNull(), // admin, photographer, videographer, editor
-  phone: text("phone"),
-  avatar: text("avatar"),
+  phone: text("phone").notNull(),
+  role: text("role", { enum: ["admin", "photographer", "videographer", "editor", "other"] }).notNull(),
   isActive: boolean("is_active").default(true).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -159,6 +157,39 @@ export const insertActivityLogSchema = createInsertSchema(activityLogs).omit({
 });
 
 // Login schema
+// Role-based signup schema
+export const signupSchema = z.object({
+  email: z.string().email("Please enter a valid email address"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+  firstName: z.string().min(2, "First name must be at least 2 characters"),
+  lastName: z.string().min(2, "Last name must be at least 2 characters"),
+  phone: z.string().regex(/^\d{10}$/, "Phone number must be exactly 10 digits"),
+  role: z.enum(["admin", "photographer", "videographer", "editor", "other"]),
+  firmId: z.number().optional(), // Only required for non-admin roles
+}).refine((data) => {
+  // If role is not admin, firmId is required
+  if (data.role !== "admin" && !data.firmId) {
+    return false;
+  }
+  return true;
+}, {
+  message: "Firm selection is required for non-admin roles",
+  path: ["firmId"],
+});
+
+// Create firm schema for admin users
+export const createFirmSchema = z.object({
+  name: z.string().min(2, "Studio name must be at least 2 characters"),
+  pin: z.string().min(4, "PIN must be at least 4 characters"),
+});
+
+// Email-based login schema
+export const emailLoginSchema = z.object({
+  email: z.string().email("Please enter a valid email address"),
+  password: z.string().min(1, "Password is required"),
+});
+
+// Legacy PIN-based login (keeping for compatibility)
 export const loginSchema = z.object({
   firmPin: z.string().min(4, "Firm PIN must be at least 4 characters"),
   username: z.string().min(1, "Username is required"),

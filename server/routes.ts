@@ -21,43 +21,67 @@ interface SessionData {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Initialize sample data
-  await storage.seedSampleData();
+  // No demo data - users must create accounts through proper signup
   
-  // Email-based signup with Supabase
+  // Get available firms for non-admin users
+  app.get("/api/firms", async (req, res) => {
+    try {
+      // Get all active firms
+      const allFirms = await db.select().from(firmTable).where(eq(firmTable.isActive, true));
+      res.json(allFirms);
+    } catch (error) {
+      console.error("Firms fetch error:", error);
+      res.status(500).json({ message: "Failed to fetch firms" });
+    }
+  });
+
+  // Firm-based signup system
   app.post("/api/auth/signup", async (req, res) => {
     try {
-      const { email, password, firstName, lastName, firmName } = req.body;
-      
-      // Create firm first
-      const firm = await storage.createFirm({
-        name: firmName,
-        pin: Math.random().toString(36).substring(2, 8).toUpperCase(), // Generate random PIN
-        isActive: true
-      });
+      const { email, password, firstName, lastName, phone, role, firmId } = req.body;
 
-      // Create user
+      // Validate role-based firm requirement
+      if (role !== "admin" && !firmId) {
+        return res.status(400).json({ message: "Firm selection is required for non-admin roles" });
+      }
+
+      // Create user with proper firm association
       const user = await storage.createUser({
-        firmId: firm.id,
-        username: email.split('@')[0], // Use email prefix as username
         email,
-        password, // In production, hash this
+        password, // In production, hash this with bcrypt
         firstName,
         lastName,
-        role: 'admin',
+        phone,
+        role,
+        firmId: role === "admin" ? null : firmId,
         isActive: true
       });
 
-      res.json({ 
-        message: "Account created successfully",
-        firmPin: firm.pin,
-        user: {
-          id: user.id,
-          email: user.email,
-          firstName: user.firstName,
-          lastName: user.lastName
-        }
-      });
+      if (role === "admin") {
+        res.json({ 
+          message: "Admin account created successfully",
+          user: {
+            id: user.id,
+            email: user.email,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            role: user.role
+          },
+          redirectTo: "/admin-setup"
+        });
+      } else {
+        res.json({ 
+          message: "Account created successfully",
+          user: {
+            id: user.id,
+            email: user.email,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            role: user.role
+          },
+          redirectTo: "/login"
+        });
+      }
     } catch (error) {
       console.error("Signup error:", error);
       res.status(400).json({ message: "Failed to create account" });

@@ -150,11 +150,11 @@ export default function Login() {
             </div>
 
             <div className="text-center text-sm text-gray-600">
-              <p className="mb-2">Demo Credentials:</p>
+              <p className="mb-2">No account yet?</p>
               <div className="text-xs space-y-1 bg-gray-50 p-3 rounded-md">
-                <p><strong>Firm PIN:</strong> 1234</p>
-                <p><strong>Username:</strong> admin</p>
-                <p><strong>Password:</strong> password123</p>
+                <p>Create your photography studio account to get started</p>
+                <p>Admins can create and manage studios</p>
+                <p>Staff members can join existing studios</p>
               </div>
             </div>
           </div>

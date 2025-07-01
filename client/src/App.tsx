@@ -7,7 +7,7 @@ import { AuthProvider } from "@/contexts/auth-context";
 import Dashboard from "@/pages/dashboard";
 import Login from "@/pages/login";
 import LoginEmail from "@/pages/login-email";
-import Signup from "@/pages/signup";
+import Signup from "@/pages/signup-new";
 import Events from "@/pages/events";
 import Tasks from "@/pages/tasks";
 import Clients from "@/pages/clients";

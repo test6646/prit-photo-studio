@@ -9,7 +9,7 @@ import {
 } from "@shared/schema";
 import { googleSheetsService } from "./google-sheets";
 
-const connectionString = process.env.SUPABASE_DATABASE_URL || process.env.DATABASE_URL;
+const connectionString = process.env.DATABASE_URL;
 let client: any = null;
 let db: any = null;
 
@@ -88,7 +88,10 @@ export class DatabaseStorage implements IStorage {
     this.databaseAvailable = !!(db && client);
     if (!this.databaseAvailable) {
       console.log("Database not available, using sample data");
-      this.seedSampleData();
+      this.createSampleData();
+    } else {
+      // Initialize database with sample data if needed
+      this.seedSampleData().catch(console.error);
     }
   }
   private sampleData = {

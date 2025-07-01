@@ -8,6 +8,13 @@
       "when": 1751364635255,
       "tag": "0000_typical_micromacro",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1751367160519,
+      "tag": "0001_nifty_lethal_legion",
+      "breakpoints": true
     }
   ]
 }

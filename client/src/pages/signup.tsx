@@ -77,12 +77,12 @@ export default function Signup() {
   const role = watch("role");
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-orange-50 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-white to-yellow-100 flex items-center justify-center px-4">
       <div className="w-full max-w-md space-y-8">
         {/* Header */}
         <div className="text-center">
           <div className="flex justify-center">
-            <div className="bg-amber-600 p-3 rounded-full">
+            <div className="p-3 rounded-full" style={{backgroundColor: '#ccb185'}}>
               <Camera className="h-8 w-8 text-white" />
             </div>
           </div>
@@ -215,8 +215,8 @@ export default function Signup() {
 
               {/* Role Description */}
               {role === "admin" && (
-                <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                  <p className="text-sm text-amber-700">
+                <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <p className="text-sm text-yellow-700">
                     <Building2 className="inline mr-1 h-4 w-4" />
                     As an Admin, you'll create a new studio and have full access to all features.
                   </p>
@@ -226,7 +226,7 @@ export default function Signup() {
               {/* Submit Button */}
               <Button
                 type="submit"
-                className="w-full bg-amber-600 hover:bg-amber-700 text-white"
+                className="w-full text-white" style={{backgroundColor: '#ccb185'}} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#b8a06c'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#ccb185'}
                 disabled={isLoading || signupMutation.isPending}
               >
                 {isLoading || signupMutation.isPending ? (
@@ -245,7 +245,7 @@ export default function Signup() {
               <p className="text-sm text-gray-600">
                 Already have an account?{" "}
                 <Link href="/login">
-                  <span className="font-medium text-amber-600 hover:text-amber-500 cursor-pointer">
+                  <span className="font-medium cursor-pointer" style={{color: '#ccb185'}} onMouseEnter={(e) => e.currentTarget.style.color = '#b8a06c'} onMouseLeave={(e) => e.currentTarget.style.color = '#ccb185'}>
                     Sign in
                   </span>
                 </Link>

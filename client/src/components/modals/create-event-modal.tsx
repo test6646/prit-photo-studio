@@ -139,6 +139,9 @@ export default function CreateEventModal({ open, onClose }: CreateEventModalProp
             <DialogTitle>Create New Event</DialogTitle>
           </div>
           <DialogDescription>
+            Add a new photography event to your studio's schedule
+          </DialogDescription>
+          <DialogDescription>
             Add a new photography event to your studio management system.
           </DialogDescription>
         </DialogHeader>

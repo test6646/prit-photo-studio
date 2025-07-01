@@ -41,6 +41,7 @@ interface NavigationItem {
 const navigationItems: NavigationItem[] = [
   { title: "Dashboard", href: "/dashboard", icon: PieChart, color: "bg-indigo-500" },
   { title: "Events", href: "/events", icon: Calendar, color: "bg-emerald-500" },
+  { title: "Clients", href: "/clients", icon: Users, color: "bg-green-500" },
   { title: "Payments", href: "/payments", icon: CreditCard, color: "bg-purple-500" },
   { title: "Tasks", href: "/tasks", icon: CheckSquare, color: "bg-amber-500" },
   { title: "Staff", href: "/staff", icon: Users, color: "bg-blue-500" },
@@ -61,7 +62,7 @@ export default function NavigationBar() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16 items-center">
             <div className="flex items-center space-x-4">
-              <Camera className="h-8 w-8 text-blue-600" />
+              <Camera className="h-8 w-8" style={{color: '#ccb185'}} />
               <span className="font-bold text-xl text-gray-900">Loading...</span>
             </div>
           </div>
@@ -99,9 +100,22 @@ export default function NavigationBar() {
               mobile ? "w-full justify-start" : ""
             } h-10 px-4 rounded-lg transition-all duration-200 ${
               isActive(item.href)
-                ? "bg-amber-600 text-white shadow-md hover:bg-amber-700"
-                : "text-gray-600 hover:text-amber-600 hover:bg-amber-50"
+                ? "text-white shadow-md"
+                : "text-gray-600 hover:bg-yellow-50"
             }`}
+            style={isActive(item.href) ? {
+              backgroundColor: '#ccb185'
+            } : {}}
+            onMouseEnter={(e) => {
+              if (!isActive(item.href)) {
+                e.currentTarget.style.color = '#ccb185';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!isActive(item.href)) {
+                e.currentTarget.style.color = '#6b7280';
+              }
+            }}
           >
             <item.icon className="h-4 w-4 mr-2" />
             {item.title}
@@ -207,7 +221,7 @@ export default function NavigationBar() {
               <SheetContent side="right" className="w-72">
                 <div className="flex flex-col space-y-4 mt-6">
                   <div className="flex items-center space-x-3 px-2">
-                    <Camera className="h-6 w-6 text-amber-600" />
+                    <Camera className="h-6 w-6" style={{color: '#ccb185'}} />
                     <span className="font-semibold text-lg">{firm.name}</span>
                   </div>
                   <div className="border-t pt-4 space-y-2">

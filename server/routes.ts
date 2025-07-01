@@ -40,17 +40,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { email, password, firstName, lastName, phone, role, firmId, adminPin } = req.body;
 
-      // For admin role, validate PIN against secure environment variable
+      // Check if user already exists
+      const existingUser = await storage.getUserByEmail(email);
+      if (existingUser) {
+        return res.status(400).json({ message: "Email already registered" });
+      }
+
+      // For admin role, create new firm
       if (role === "admin") {
-        if (!adminPin || adminPin.length < 4) {
-          return res.status(400).json({ message: "Admin PIN required (min 4 characters)" });
-        }
-        
-        // Verify admin PIN against secure environment variable
-        if (adminPin !== process.env.ADMIN_PIN) {
-          return res.status(401).json({ message: "Invalid admin PIN" });
-        }
-        
         // Create a default firm for the admin
         const firm = await storage.createFirm({
           name: `${firstName} ${lastName} Studio`,
@@ -64,7 +61,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           password,
           firstName,
           lastName,
-          phone,
+          phone: phone || "",
           role,
           firmId: firm.id,
           isActive: true
@@ -92,7 +89,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           password,
           firstName,
           lastName,
-          phone,
+          phone: phone || "",
           role,
           firmId,
           isActive: true
@@ -111,7 +108,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     } catch (error) {
       console.error("Signup error:", error);
-      res.status(400).json({ message: "Failed to create account" });
+      res.status(500).json({ message: "Failed to create account. Please try again." });
     }
   });
 
@@ -129,18 +126,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Set session data
       req.session.userId = user.id;
-      req.session.firmId = user.firmId;
+      req.session.firmId = user.firmId || undefined;
       
       res.json({ 
         user: { 
           id: user.id, 
           firmId: user.firmId,
-          username: user.username, 
           email: user.email,
           firstName: user.firstName,
           lastName: user.lastName,
-          role: user.role,
-          avatar: user.avatar
+          role: user.role
         }, 
         firm: firm ? { 
           id: firm.id, 

@@ -124,6 +124,12 @@ This is a comprehensive Photography Studio Management System built as a multi-te
 ```
 Changelog:
 - July 01, 2025. Initial setup
+- July 01, 2025. Migrated from Replit Agent to Replit environment
+  • Fixed database connection and authentication flow
+  • Resolved signup functionality by removing admin PIN requirement
+  • Added PostgreSQL database support with proper migrations
+  • Fixed authentication endpoints and session management
+  • Added explicit /dashboard route for proper navigation
 ```
 
 ## User Preferences

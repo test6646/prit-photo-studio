@@ -199,35 +199,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.get("/api/auth/me", async (req, res) => {
-    if (!req.session?.userId || !req.session?.firmId) {
+    if (!req.session?.userId) {
       return res.status(401).json({ message: "Not authenticated" });
     }
 
     try {
       const user = await storage.getUser(req.session.userId);
-      const firm = await storage.getFirmByPin("1234"); // We'll fix this to get by ID later
       
-      if (!user || !firm) {
+      if (!user) {
         return res.status(401).json({ message: "User not found" });
+      }
+
+      let firm = null;
+      if (user.firmId) {
+        firm = await storage.getFirm(user.firmId);
       }
 
       res.json({ 
         user: { 
           id: user.id, 
           firmId: user.firmId,
-          username: user.username, 
           email: user.email,
           firstName: user.firstName,
           lastName: user.lastName,
-          role: user.role,
-          avatar: user.avatar
+          role: user.role
         }, 
-        firm: { 
+        firm: firm ? { 
           id: firm.id, 
           name: firm.name 
-        } 
+        } : null
       });
     } catch (error) {
+      console.error("Auth me error:", error);
       res.status(500).json({ message: "Server error" });
     }
   });

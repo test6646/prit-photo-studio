@@ -40,14 +40,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { email, password, firstName, lastName, phone, role, firmId, adminPin } = req.body;
 
-      // For admin role, validate PIN and create firm
+      // For admin role, validate PIN against secure environment variable
       if (role === "admin") {
         if (!adminPin || adminPin.length < 4) {
           return res.status(400).json({ message: "Admin PIN required (min 4 characters)" });
         }
         
-        // Store the admin PIN securely (in production, this would be hashed)
-        process.env.ADMIN_PIN = adminPin;
+        // Verify admin PIN against secure environment variable
+        if (adminPin !== process.env.ADMIN_PIN) {
+          return res.status(401).json({ message: "Invalid admin PIN" });
+        }
         
         // Create a default firm for the admin
         const firm = await storage.createFirm({

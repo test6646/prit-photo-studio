@@ -8,9 +8,21 @@ import {
   type EventWithClient, type TaskWithDetails, type DashboardStats, type FinancialSummary
 } from "@shared/schema";
 
-const connectionString = process.env.SUPABASE_DATABASE_URL || process.env.DATABASE_URL!;
-const client = neon(connectionString);
-const db = drizzle(client);
+const connectionString = process.env.SUPABASE_DATABASE_URL || process.env.DATABASE_URL;
+let client: any = null;
+let db: any = null;
+
+if (connectionString) {
+  try {
+    client = neon(connectionString);
+    db = drizzle(client);
+    console.log("Database connected successfully");
+  } catch (error) {
+    console.error("Database connection failed:", error);
+  }
+} else {
+  console.log("No database URL found, using sample data");
+}
 
 export interface IStorage {
   // Firm management
@@ -61,7 +73,15 @@ export interface IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
-  private databaseAvailable = true;
+  private databaseAvailable = false;
+  
+  constructor() {
+    this.databaseAvailable = !!(db && client);
+    if (!this.databaseAvailable) {
+      console.log("Database not available, using sample data");
+      this.seedSampleData();
+    }
+  }
   private sampleData = {
     firms: new Map<number, Firm>(),
     users: new Map<number, User>(),
@@ -430,8 +450,26 @@ export class DatabaseStorage implements IStorage {
     this.currentId = 100;
   }
   async createFirm(firm: InsertFirm): Promise<Firm> {
-    const [result] = await db.insert(firms).values(firm).returning();
-    return result;
+    if (this.databaseAvailable) {
+      try {
+        const [result] = await db.insert(firms).values(firm).returning();
+        this.sampleData.firms.set(result.id, result);
+        return result;
+      } catch (error) {
+        console.error("Database error, falling back to sample data:", error);
+        this.databaseAvailable = false;
+      }
+    }
+    
+    // Fallback to sample data
+    const newFirm: Firm = {
+      id: this.currentId++,
+      ...firm,
+      createdAt: new Date(),
+      isActive: firm.isActive ?? true
+    };
+    this.sampleData.firms.set(newFirm.id, newFirm);
+    return newFirm;
   }
 
   async getFirmByPin(pin: string): Promise<Firm | undefined> {
@@ -443,8 +481,27 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createUser(user: InsertUser): Promise<User> {
-    const [result] = await db.insert(users).values(user).returning();
-    return result;
+    if (this.databaseAvailable) {
+      try {
+        const [result] = await db.insert(users).values(user).returning();
+        this.sampleData.users.set(result.id, result);
+        return result;
+      } catch (error) {
+        console.error("Database error, falling back to sample data:", error);
+        this.databaseAvailable = false;
+      }
+    }
+    
+    // Fallback to sample data
+    const newUser: User = {
+      id: this.currentId++,
+      ...user,
+      firmId: user.firmId || null,
+      createdAt: new Date(),
+      isActive: true
+    };
+    this.sampleData.users.set(newUser.id, newUser);
+    return newUser;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {

@@ -6,6 +6,11 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/auth-context";
 import Dashboard from "@/pages/dashboard";
 import Login from "@/pages/login";
+import LoginEmail from "@/pages/login-email";
+import Signup from "@/pages/signup";
+import Events from "@/pages/events";
+import Tasks from "@/pages/tasks";
+import Clients from "@/pages/clients";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -13,6 +18,11 @@ function Router() {
     <Switch>
       <Route path="/" component={Dashboard} />
       <Route path="/login" component={Login} />
+      <Route path="/login-email" component={LoginEmail} />
+      <Route path="/signup" component={Signup} />
+      <Route path="/events" component={Events} />
+      <Route path="/tasks" component={Tasks} />
+      <Route path="/clients" component={Clients} />
       <Route component={NotFound} />
     </Switch>
   );

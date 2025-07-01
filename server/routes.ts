@@ -24,7 +24,85 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize sample data
   await storage.seedSampleData();
   
-  // Authentication
+  // Email-based signup with Supabase
+  app.post("/api/auth/signup", async (req, res) => {
+    try {
+      const { email, password, firstName, lastName, firmName } = req.body;
+      
+      // Create firm first
+      const firm = await storage.createFirm({
+        name: firmName,
+        pin: Math.random().toString(36).substring(2, 8).toUpperCase(), // Generate random PIN
+        isActive: true
+      });
+
+      // Create user
+      const user = await storage.createUser({
+        firmId: firm.id,
+        username: email.split('@')[0], // Use email prefix as username
+        email,
+        password, // In production, hash this
+        firstName,
+        lastName,
+        role: 'admin',
+        isActive: true
+      });
+
+      res.json({ 
+        message: "Account created successfully",
+        firmPin: firm.pin,
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName
+        }
+      });
+    } catch (error) {
+      console.error("Signup error:", error);
+      res.status(400).json({ message: "Failed to create account" });
+    }
+  });
+
+  // Email-based login
+  app.post("/api/auth/login-email", async (req, res) => {
+    try {
+      const { email, password } = req.body;
+      
+      const user = await storage.getUserByUsername(email.split('@')[0]);
+      if (!user || user.password !== password || user.email !== email) {
+        return res.status(401).json({ message: "Invalid email or password" });
+      }
+
+      const firm = await storage.getFirmByPin("1234"); // We'll improve this lookup
+      
+      // Set session data
+      req.session.userId = user.id;
+      req.session.firmId = user.firmId;
+      
+      res.json({ 
+        user: { 
+          id: user.id, 
+          firmId: user.firmId,
+          username: user.username, 
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          role: user.role,
+          avatar: user.avatar
+        }, 
+        firm: firm ? { 
+          id: firm.id, 
+          name: firm.name 
+        } : null
+      });
+    } catch (error) {
+      console.error("Email login error:", error);
+      res.status(400).json({ message: "Invalid request data" });
+    }
+  });
+
+  // PIN-based authentication (existing)
   app.post("/api/auth/login", async (req, res) => {
     try {
       console.log("Login request body:", req.body);

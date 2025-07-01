@@ -8,7 +8,7 @@ import {
   type EventWithClient, type TaskWithDetails, type DashboardStats, type FinancialSummary
 } from "@shared/schema";
 
-const connectionString = process.env.DATABASE_URL!;
+const connectionString = process.env.SUPABASE_DATABASE_URL || process.env.DATABASE_URL!;
 const client = neon(connectionString);
 const db = drizzle(client);
 

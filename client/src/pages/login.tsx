@@ -125,12 +125,37 @@ export default function Login() {
             </Button>
           </form>
 
-          <div className="mt-6 text-center text-sm text-gray-600">
-            <p className="mb-2">Demo Credentials:</p>
-            <div className="text-xs space-y-1 bg-gray-50 p-3 rounded-md">
-              <p><strong>Firm PIN:</strong> 1234</p>
-              <p><strong>Username:</strong> admin</p>
-              <p><strong>Password:</strong> password123</p>
+          <div className="mt-6 space-y-4">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">or</span>
+              </div>
+            </div>
+
+            <div className="text-center space-y-2">
+              <p className="text-sm text-gray-600">
+                Want to create your own studio account?
+              </p>
+              <div className="space-y-2">
+                <Button variant="outline" asChild className="w-full">
+                  <a href="/login-email">Use Email Login</a>
+                </Button>
+                <Button variant="outline" asChild className="w-full">
+                  <a href="/signup">Create New Studio Account</a>
+                </Button>
+              </div>
+            </div>
+
+            <div className="text-center text-sm text-gray-600">
+              <p className="mb-2">Demo Credentials:</p>
+              <div className="text-xs space-y-1 bg-gray-50 p-3 rounded-md">
+                <p><strong>Firm PIN:</strong> 1234</p>
+                <p><strong>Username:</strong> admin</p>
+                <p><strong>Password:</strong> password123</p>
+              </div>
             </div>
           </div>
         </CardContent>

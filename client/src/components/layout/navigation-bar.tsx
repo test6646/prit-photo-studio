@@ -39,15 +39,15 @@ interface NavigationItem {
 }
 
 const navigationItems: NavigationItem[] = [
-  { title: "Dashboard", href: "/dashboard", icon: PieChart, color: "bg-blue-500" },
-  { title: "Events", href: "/events", icon: Calendar, color: "bg-green-500" },
+  { title: "Dashboard", href: "/dashboard", icon: PieChart, color: "bg-indigo-500" },
+  { title: "Events", href: "/events", icon: Calendar, color: "bg-emerald-500" },
   { title: "Payments", href: "/payments", icon: CreditCard, color: "bg-purple-500" },
-  { title: "Tasks", href: "/tasks", icon: CheckSquare, color: "bg-orange-500" },
-  { title: "Staff", href: "/staff", icon: Users, color: "bg-cyan-500" },
-  { title: "Sheet", href: "/sheet", icon: FileText, color: "bg-emerald-500" },
-  { title: "Quotations", href: "/quotations", icon: FileText, color: "bg-indigo-500" },
-  { title: "Expenses", href: "/expenses", icon: CreditCard, color: "bg-red-500" },
-  { title: "Finance", href: "/finance", icon: PieChart, color: "bg-yellow-500" },
+  { title: "Tasks", href: "/tasks", icon: CheckSquare, color: "bg-amber-500" },
+  { title: "Staff", href: "/staff", icon: Users, color: "bg-blue-500" },
+  { title: "Sheet", href: "/sheet", icon: FileText, color: "bg-teal-500" },
+  { title: "Quotations", href: "/quotations", icon: FileText, color: "bg-violet-500" },
+  { title: "Expenses", href: "/expenses", icon: CreditCard, color: "bg-rose-500" },
+  { title: "Finance", href: "/finance", icon: PieChart, color: "bg-cyan-500" },
 ];
 
 export default function NavigationBar() {
@@ -99,8 +99,8 @@ export default function NavigationBar() {
               mobile ? "w-full justify-start" : ""
             } h-10 px-4 rounded-lg transition-all duration-200 ${
               isActive(item.href)
-                ? "bg-gray-900 text-white shadow-md"
-                : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                ? "bg-indigo-600 text-white shadow-md hover:bg-indigo-700"
+                : "text-gray-600 hover:text-indigo-600 hover:bg-indigo-50"
             }`}
           >
             <item.icon className="h-4 w-4 mr-2" />
@@ -124,7 +124,7 @@ export default function NavigationBar() {
           <div className="flex items-center space-x-4">
             <Link href="/dashboard">
               <div className="flex items-center space-x-3 cursor-pointer">
-                <Camera className="h-8 w-8 text-blue-600" />
+                <Camera className="h-8 w-8 text-indigo-600" />
                 <span className="font-bold text-xl text-gray-900">
                   {firm.name.split(' ').slice(0, 2).join(' ')}
                 </span>
@@ -145,7 +145,7 @@ export default function NavigationBar() {
             </Button>
 
             {/* Sync Status */}
-            <Button variant="ghost" size="sm" className="hidden sm:flex text-green-600">
+            <Button variant="ghost" size="sm" className="hidden sm:flex text-emerald-600">
               <RefreshCw className="h-4 w-4 mr-1" />
               <span className="text-xs">Synced</span>
             </Button>
@@ -156,7 +156,7 @@ export default function NavigationBar() {
                 <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                   <Avatar className="h-10 w-10">
                     <AvatarImage src="" alt={`${user.firstName} ${user.lastName}`} />
-                    <AvatarFallback className="bg-blue-600 text-white font-medium">
+                    <AvatarFallback className="bg-indigo-600 text-white font-medium">
                       {getInitials(user.firstName, user.lastName)}
                     </AvatarFallback>
                   </Avatar>
@@ -207,7 +207,7 @@ export default function NavigationBar() {
               <SheetContent side="right" className="w-72">
                 <div className="flex flex-col space-y-4 mt-6">
                   <div className="flex items-center space-x-3 px-2">
-                    <Camera className="h-6 w-6 text-blue-600" />
+                    <Camera className="h-6 w-6 text-indigo-600" />
                     <span className="font-semibold text-lg">{firm.name}</span>
                   </div>
                   <div className="border-t pt-4 space-y-2">

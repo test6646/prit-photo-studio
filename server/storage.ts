@@ -87,11 +87,10 @@ export class DatabaseStorage implements IStorage {
   constructor() {
     this.databaseAvailable = !!(db && client);
     if (!this.databaseAvailable) {
-      console.log("Database not available, using sample data");
-      this.createSampleData();
+      console.log("Database not available, using in-memory storage");
+      // No sample data - clean slate for production
     } else {
-      // Initialize database with sample data if needed
-      this.seedSampleData().catch(console.error);
+      console.log("Database available - ready for production use");
     }
   }
   private sampleData = {
@@ -311,6 +310,7 @@ export class DatabaseStorage implements IStorage {
       id: 1,
       name: "Aperture Studios",
       pin: "1234",
+      spreadsheetId: null,
       createdAt: new Date(),
       isActive: true,
     };
@@ -464,7 +464,8 @@ export class DatabaseStorage implements IStorage {
   async createFirm(firm: InsertFirm): Promise<Firm> {
     if (this.databaseAvailable) {
       try {
-        const [result] = await db.insert(firms).values(firm).returning();
+        const firmData = { ...firm, spreadsheetId: null };
+        const [result] = await db.insert(firms).values(firmData).returning();
         this.sampleData.firms.set(result.id, result);
         
         // Create Google Sheets spreadsheet for the firm

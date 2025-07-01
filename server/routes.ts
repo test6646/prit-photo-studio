@@ -9,6 +9,7 @@ import {
 import { drizzle } from "drizzle-orm/neon-http";
 import { neon } from "@neondatabase/serverless";
 import { eq } from "drizzle-orm";
+import bcrypt from "bcryptjs";
 
 const connectionString = process.env.DATABASE_URL!;
 const client = neon(connectionString);
@@ -46,6 +47,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Email already registered" });
       }
 
+      // Hash password
+      const hashedPassword = await bcrypt.hash(password, 10);
+
       // For admin role, create new firm
       if (role === "admin") {
         // Create a default firm for the admin
@@ -58,7 +62,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Create admin user
         const user = await storage.createUser({
           email,
-          password,
+          password: hashedPassword,
           firstName,
           lastName,
           phone: phone || "",
@@ -86,7 +90,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Create user with selected firm
         const user = await storage.createUser({
           email,
-          password,
+          password: hashedPassword,
           firstName,
           lastName,
           phone: phone || "",
@@ -155,7 +159,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Find user by email
       const user = await storage.getUserByEmail(email);
-      if (!user || user.password !== password) {
+      if (!user) {
+        return res.status(401).json({ message: "Invalid email or password" });
+      }
+
+      // Verify password
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+      if (!isPasswordValid) {
         return res.status(401).json({ message: "Invalid email or password" });
       }
 
